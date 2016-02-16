@@ -35,8 +35,8 @@
 
           </span>          
     </p>
-    <a type="button" class="btn btn-lg btn-default" href="https://devcenter.heroku.com/articles/getting-started-with-python"><span class="glyphicon glyphicon-flash"></span> Use a sample image</a>
-    <a type="button" class="btn btn-lg btn-primary" href="https://github.com/heroku/python-getting-started"><span class="glyphicon glyphicon-download"></span> Source on GitHub</a>
+    <a type="button" class="btn btn-lg btn-default" href="#" id="sample-image"><span class="glyphicon glyphicon-flash"></span> Use a sample image</a>
+    <a type="button" class="btn btn-lg btn-primary" href="https://github.com/cid2105/dirty-image-classifier"><span class="glyphicon glyphicon-download"></span> Source on GitHub</a>
   </div>
 </div>
 <div class="container">
@@ -151,18 +151,6 @@ $(':file').change(function(){
                  $.notifyBar({  html: "I don't think that's porn. At least not the kind of stuff I watch."}); 
                 
               }
-              // /*
-              // * workaround for crome browser // delete the fakepath
-              // */
-              // if(navigator.userAgent.indexOf('Chrome')) {
-              //     var catchFile = $(":file").val().replace(/C:\\*\\/i, '');
-              // }
-              // else {
-              //     var catchFile = $(":file").val();
-              // }
-              // var writeFile = $(":file");
-              // writeFile.html(writer(catchFile));
-              // $("*setIdOfImageInHiddenInput*").val(data.logo_id);
           },
           error: errorHandler = function(e) {
               toastr.error("Internal server error");
