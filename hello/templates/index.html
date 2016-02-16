@@ -20,23 +20,17 @@
         <h3> Result: <span class="label label-pill label-success">NOT PORN</span></h3>
       </div>
     </p>
-    <p>    
-        
-        <span class="btn btn-default btn-file" >
-            
-              {% csrf_token %}
+    <p>      
+          {% csrf_token %}
+          <span class="btn btn-default btn-file btn-lg" >
               Upload a file <input type="file">
-
-              <div class="progress progress-striped active">
-                <div class="bar" style="width: 0%;"></div>
-              </div>
-              
-              <div id="status"></div>
-
           </span>          
+          <button class="btn btn-info btn-lg" id="go">
+            Go!
+          </button>
     </p>
     <a type="button" class="btn btn-lg btn-default" href="#" id="sample-image"><span class="glyphicon glyphicon-flash"></span> Use a sample image</a>
-    <a type="button" class="btn btn-lg btn-primary" href="https://github.com/cid2105/dirty-image-classifier"><span class="glyphicon glyphicon-download"></span> Source on GitHub</a>
+    
   </div>
 </div>
 <div class="container">
@@ -79,38 +73,138 @@ Layer #  name        size
         <li><a href="https://devcenter.heroku.com/articles/getting-started-with-python">Getting Started with Python on Heroku</a></li>
         <li><a href="https://devcenter.heroku.com/articles/django-app-configuration">Configuring Django Apps for Heroku</a></li>
       </ul>
+      <br/>
+      <a type="button" class="btn btn-lg btn-primary" href="https://github.com/cid2105/dirty-image-classifier" target="_blank"><span class="glyphicon glyphicon-download"></span> Source on GitHub</a>
     </div>
   </div> <!-- row -->
 </div>
 
 <script>
 
-var sample_urls = "";
-function readURL(input) {
 
+function getBlobFromImage(img) {
+    // Create an empty canvas element
+    var canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
+
+    // Copy the image contents to the canvas
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+
+    // Get the data-URL formatted image
+    // Firefox supports PNG and JPEG. You could check img.src to
+    // guess the original format, but be aware the using "image/jpg"
+    // will re-encode the image.
+    var dataURL = canvas.toDataURL("image/png");
+    return dataURItoBlob(dataURL);
+}
+
+function dataUriToBlob(dataURI) {
+        // serialize the base64/URLEncoded data
+        var byteString;
+        if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+            byteString = atob(dataURI.split(',')[1]);
+        }
+        else {
+            byteString = unescape(dataURI.split(',')[1]);
+        }
+
+        // parse the mime type
+        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+        // construct a Blob of the image data
+        var array = [];
+        for(var i = 0; i < byteString.length; i++) {
+            array.push(byteString.charCodeAt(i));
+        }
+        return new Blob(
+            [new Uint8Array(array)],
+            {type: mimeString}
+        );
+}
+
+function readURL(input) {
     if (input.files && input.files[0]) {
         var reader = new FileReader();
-
         reader.onload = function (e) {
             $('img#preview').show().attr('src', e.target.result);
         }
-
         reader.readAsDataURL(input.files[0]);
     }
 }
 
-function reset() { $("#not-porn").hide(); $("#porn").hide(); }
+function submitFormDataToAPI(formData) {
+  $.ajax({
+          url: 'classify',  //server script to process data
+          type: 'POST',
+          //Ajax events
+          success: completeHandler = function(data) {
+              if(data["porn"] === "true") {
+                $("#porn").show();
+                 $.notifyBar({  html: "That's porn alright. I know it when I see it!"}); 
+              } else {
+                $("#not-porn").show();
+                 $.notifyBar({  html: "I don't think that's porn. At least not the kind of stuff I've seen.."}); 
+              }
+          },
+          error: errorHandler = function(e) {
+              toastr.error("Internal server error");
+          },
+          // Form data
+          data: formData,
+          //Options to tell JQuery not to process data or worry about content-type
+          cache: false,
+          contentType: false,
+          processData: false
+      }, 'json');
+}
 
-$(':file').change(function(){
-    reset();
+function reset() { 
+  $("#not-porn").hide(); $("#porn").hide(); 
+}
+
+$(":file").change(function(){
     readURL(this);
-    var file = this.files[0];
+});
+
+var isUsingSampleData = false;
+
+$("#sample-image").click(function() {
+  reset();
+  var image_number = Math.floor(Math.random() * 10) + 1;
+  $('img#preview').show().attr('src', "/static/sample-" + image_number + ".png");
+  isUsingSampleData = true;
+});
+
+function submitSampleData() { 
+
+  var image = $('img#preview')[0];
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+  canvas.width = image.width;
+  canvas.height = image.height;
+  ctx.drawImage(image, 0, 0);
+  var dataUrl = canvas.toDataURL('image/png');
+  var blob = dataUriToBlob(dataUrl);
+  var formData = new FormData();
+  formData.append("image", blob);
+  submitFormDataToAPI(formData);
+}
+
+$('button#go').click(function(){
+    if(isUsingSampleData) {
+      submitSampleData();
+      isUsingSampleData = false;
+      return true;
+    }
+
+    reset();
+    var file_elem = $(':file')[0];
+    var file = file_elem.files[0];
     name = file.name;
     size = file.size;
     type = file.type;
-
-    var bar = $('.bar');
-    bar.width("0");
 
     if(file.name.length < 1) {
     }
@@ -124,44 +218,8 @@ $(':file').change(function(){
         
       var formData = new FormData();
       formData.append('image', file);
-
-
-      function uploadProgress(event, position, total, percentComplete) {
-          var percentVal = percentComplete + '%';
-          bar.width(percentVal);
-      }
-
-      $.ajax({
-          url: 'classify',  //server script to process data
-          type: 'POST',
-          xhr: function() {  // custom xhr
-              myXhr = $.ajaxSettings.xhr();
-              if(myXhr.upload){ // if upload property exists
-                  myXhr.upload.addEventListener('progress', uploadProgress, false); // progressbar
-              }
-              return myXhr;
-          },
-          //Ajax events
-          success: completeHandler = function(data) {
-              if(data["porn"] === "true") {
-                $("#porn").show();
-                 $.notifyBar({  html: "That's porn alright. I know it when I see it!"}); 
-              } else {
-                $("#not-porn").show();
-                 $.notifyBar({  html: "I don't think that's porn. At least not the kind of stuff I watch."}); 
-                
-              }
-          },
-          error: errorHandler = function(e) {
-              toastr.error("Internal server error");
-          },
-          // Form data
-          data: formData,
-          //Options to tell JQuery not to process data or worry about content-type
-          cache: false,
-          contentType: false,
-          processData: false
-      }, 'json');
+      submitFormDataToAPI(formData);
+      
         
     }
 });
