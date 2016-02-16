@@ -165,6 +165,7 @@ function reset() {
 }
 
 $(":file").change(function(){
+    reset(); 
     readURL(this);
 });
 
@@ -193,6 +194,7 @@ function submitSampleData() {
 }
 
 $('button#go').click(function(){
+
     if(isUsingSampleData) {
       submitSampleData();
       isUsingSampleData = false;
