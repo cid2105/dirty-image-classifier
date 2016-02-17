@@ -43,7 +43,7 @@ def process_image(im):
 
 @csrf_exempt
 def classify(request):
-	logger.info(request)
+	logger.info(request.__dict__)
 	if request.method == 'POST':
 		if 'image' in request.FILES:
 			im = cnn.resize(request.FILES['image'])
