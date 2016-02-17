@@ -8,6 +8,21 @@ import json
 import urllib, cStringIO
 import logging, logging.config
 
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO'
+    }
+}
+
+logging.config.dictConfig(LOGGING)
 
 logger = logging.getLogger(__name__)
 CONTENT_TYPES = ['image', 'video']
