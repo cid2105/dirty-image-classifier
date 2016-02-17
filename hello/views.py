@@ -6,8 +6,10 @@ from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 import json
 import urllib, cStringIO
+import logging, logging.config
 
 
+logger = logging.getLogger(__name__)
 CONTENT_TYPES = ['image', 'video']
 MAX_UPLOAD_SIZE = "10485760" # 10 MB
 cnn = CNN()
@@ -25,6 +27,7 @@ def process_image(im):
 
 @csrf_exempt
 def classify(request):
+	logger.info(request)
 	if request.method == 'POST':
 		if 'image' in request.FILES:
 			im = cnn.resize(request.FILES['image'])
