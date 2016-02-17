@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.template.defaultfilters import filesizeformat
 from .models import CNN
 from django.views.decorators.csrf import csrf_exempt
+from PIL import Image
 import json
 import urllib, cStringIO
 
