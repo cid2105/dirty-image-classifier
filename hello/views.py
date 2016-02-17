@@ -43,16 +43,12 @@ def process_image(im):
 
 @csrf_exempt
 def classify(request):
-	logger.info(str(request))
 	if request.method == 'POST':
 		logger.info(request.POST)
-		logger.info(str(request.POST))
 		if 'image' in request.FILES:
 			im = cnn.resize(request.FILES['image'])
 			return HttpResponse(process_image(im), content_type="application/json")
 		if 'URL' in request.POST:
-			logger.info(request.POST["URL"])
-			logger.info(str(request.POST["URL"]))
 			file = cStringIO.StringIO(urllib.urlopen(request.POST['URL']).read())
 			im = cnn.resize(file)
 			if im is not None:
