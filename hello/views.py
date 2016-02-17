@@ -7,6 +7,7 @@ from PIL import Image
 import json
 import urllib, cStringIO
 import logging, logging.config
+import sys
 
 LOGGING = {
     'version': 1,
