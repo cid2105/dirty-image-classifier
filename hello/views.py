@@ -29,9 +29,12 @@ def classify(request):
 			im = cnn.resize(request.FILES['image'])
 			return HttpResponse(process_image(im), content_type="application/json")
 		if 'url' in request.POST:
-			file = cStringIO.StringIO(urllib.urlopen(URL).read())
+			file = cStringIO.StringIO(urllib.urlopen(request.POST['url']).read())
 			im = Image.open(file)
-			return HttpResponse(process_image(im), content_type="application/json")
+			if im is not None:
+				return HttpResponse(process_image(cnn.resize(im)), content_type="application/json")
+			else:
+				return HttpResponse(json.dumps({'error': "Bad URL"}), content_type="application/json")
 	else:
 		return HttpResponse(json.dumps({'error': "No image received"}), content_type="application/json")
 
